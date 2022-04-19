@@ -12,7 +12,7 @@ fn main() -> io::Result<()> {
         let mut sub = fs::read_dir(dir)?;
         let res = sub.find(|v| v.as_ref().unwrap().file_name().to_str().unwrap() == ".git");
         if res.is_none() {
-            println!("{:?}", dir.file_name().unwrap());
+            println!("{}", dir.file_name().unwrap().to_str().unwrap());
         }
     }
 
@@ -26,7 +26,7 @@ fn main() -> io::Result<()> {
                 .is_empty()
                 .unwrap();
             if empty {
-                println!("{:?}", dir.file_name().unwrap());
+                println!("{}", dir.file_name().unwrap().to_str().unwrap());
             }
         }
     }

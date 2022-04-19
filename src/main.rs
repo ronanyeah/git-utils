@@ -37,19 +37,32 @@ fn main() -> io::Result<()> {
         let res = sub.find(|v| v.as_ref().unwrap().file_name().to_str().unwrap() == ".git");
         if res.is_some() {
             let path = res.unwrap().unwrap().path();
-            let empty = git2::Repository::open(path.clone())
-                .unwrap()
-                .is_empty()
-                .unwrap();
-            if !empty {
-                let repo = git2::Repository::open(path).unwrap();
-                let changes = repo
-                    .diff_index_to_workdir(None, None)
+            let repo = git2::Repository::open(path.clone()).unwrap();
+            if !repo.is_empty().unwrap() {
+                let diff = repo
+                    .diff_index_to_workdir(
+                        None,
+                        Some(
+                            git2::DiffOptions::new()
+                                .include_untracked(true)
+                                .recurse_untracked_dirs(true),
+                        ),
+                    )
+                    .unwrap();
+
+                let deltas = diff.deltas().len();
+
+                let statuses = repo
+                    .statuses(Some(git2::StatusOptions::new().include_untracked(true)))
                     .unwrap()
-                    .deltas()
                     .len();
-                if changes > 0 {
-                    println!("{:?}", dir.file_name().unwrap());
+
+                if deltas > 0 || statuses > 0 {
+                    println!(
+                        "{} - {}",
+                        dir.file_name().unwrap().to_str().unwrap(),
+                        std::cmp::max(deltas, statuses)
+                    );
                 }
             }
         }
